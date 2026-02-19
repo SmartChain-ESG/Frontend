@@ -16,8 +16,8 @@ import { getMe } from '../../src/api/auth';
 import { loginSchema, type LoginFormData } from '../../src/validation/auth';
 import type { ErrorResponse } from '../../src/types/api.types';
 import { getLoginErrorMessage, getAccountLockState, formatLockTime, type AccountLockState } from '../../src/utils/errorHandler';
-import svgPaths from "../../imports/svg-1z9x9otd1u";
-import { imgGroup } from "../../imports/svg-cdk78";
+import svgPaths from "../../shared/assets/loginSvgPaths";
+import { imgGroup } from "../../shared/assets/loginIcon";
 
 function LoginBackground() {
   return (
