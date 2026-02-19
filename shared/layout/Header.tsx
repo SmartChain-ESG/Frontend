@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import svgPaths from '../../imports/svg-h10djjhihc';
+import svgPaths from '../assets/headerSvgPaths';
 import { useLogout } from '../../src/hooks/useAuth';
 import { useNotifications, useUnreadCount, useMarkAsRead } from '../../src/hooks/useNotifications';
 import { getNotificationLink } from '../../src/api/notifications';
