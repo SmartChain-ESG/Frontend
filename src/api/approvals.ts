@@ -14,6 +14,7 @@ export interface ApprovalListItem {
   requester: {
     userId: number;
     name: string;
+    maskedName: string;
     email: string;
   };
   domainCode: string;
@@ -34,10 +35,20 @@ interface ApprovalListParams {
   size?: number;
 }
 
+export interface ApprovalStats {
+  waiting: number;
+  approved: number;
+  rejected: number;
+}
+
+export interface ApprovalListResponse extends PagedData<ApprovalListItem> {
+  stats?: ApprovalStats;
+}
+
 export const getApprovals = async (
   params: ApprovalListParams = {}
-): Promise<PagedData<ApprovalListItem>> => {
-  const response = await apiClient.get<BaseResponse<PagedData<ApprovalListItem>>>('/v1/approvals', {
+): Promise<ApprovalListResponse> => {
+  const response = await apiClient.get<BaseResponse<ApprovalListResponse>>('/v1/approvals', {
     params: { page: 0, size: 10, ...params },
   });
   return response.data.data;

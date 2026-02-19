@@ -137,6 +137,7 @@
     color: var(--foreground);
     font-family: var(--font-family-medium);
     font-size: 1.6rem; /* 16px */
+    word-break: keep-all;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -189,4 +190,25 @@
       line-height: 1.5;
     }
   }
+}
+
+/* SheetJS table viewer */
+.sheet-viewer table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 1.3rem;
+}
+.sheet-viewer th,
+.sheet-viewer td {
+  border: 1px solid #dee2e6;
+  padding: 6px 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+.sheet-viewer th {
+  background-color: #f1f3f5;
+  font-weight: 600;
+}
+.sheet-viewer tr:hover td {
+  background-color: #f8f9fa;
 }

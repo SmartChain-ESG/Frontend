@@ -1,22 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '../../src/hooks/useNotifications';
-import type { NotificationItem } from '../../src/api/notifications';
+import { getNotificationLink, type NotificationItem } from '../../src/api/notifications';
+import { formatKoreanRelativeTime } from '../../src/utils/dateTime';
 import DashboardLayout from '../../shared/layout/DashboardLayout';
 
 function formatRelativeTime(dateStr: string): string {
-  const now = new Date();
-  const date = new Date(dateStr);
-  const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60_000);
-  const diffHour = Math.floor(diffMs / 3_600_000);
-  const diffDay = Math.floor(diffMs / 86_400_000);
-
-  if (diffMin < 1) return '방금 전';
-  if (diffMin < 60) return `${diffMin}분 전`;
-  if (diffHour < 24) return `${diffHour}시간 전`;
-  if (diffDay < 7) return `${diffDay}일 전`;
-  return date.toLocaleDateString('ko-KR');
+  return formatKoreanRelativeTime(dateStr);
 }
 
 const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
@@ -43,12 +33,14 @@ function NotificationCard({
   onMarkRead: (id: number) => void;
   onNavigate: (link: string) => void;
 }) {
+  const link = getNotificationLink(notification);
+
   const handleClick = () => {
     if (!notification.read) {
       onMarkRead(notification.notificationId);
     }
-    if (notification.link) {
-      onNavigate(notification.link);
+    if (link) {
+      onNavigate(link);
     }
   };
 
@@ -89,7 +81,7 @@ function NotificationCard({
       </div>
 
       {/* 링크 화살표 */}
-      {notification.link && (
+      {link && (
         <div className="shrink-0 pt-[4px] text-[var(--color-text-tertiary)]">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

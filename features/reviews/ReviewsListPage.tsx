@@ -1,58 +1,64 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useReviews, useBulkReport, useExportReviews } from '../../src/hooks/useReviews';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useReviews } from '../../src/hooks/useReviews';
 import type { ReviewStatus, RiskLevel, DomainCode } from '../../src/types/api.types';
 import { DOMAIN_LABELS } from '../../src/types/api.types';
+import { formatKoreanDate } from '../../src/utils/dateTime';
 import DashboardLayout from '../../shared/layout/DashboardLayout';
+
+const STATUS_STYLES: Record<ReviewStatus, string> = {
+  REVIEWING: 'text-[#002554] bg-[#e3f2fd]',
+  APPROVED: 'text-[#008233] bg-[#f0fdf4]',
+  REVISION_REQUIRED: 'text-[#e65100] bg-[#fff3e0]',
+};
+
+const RISK_LEVEL_CONFIG: Record<string, { label: string; style: string }> = {
+  HIGH: { label: '고위험', style: 'text-[#b91c1c] bg-[#fef2f2]' },
+  MEDIUM: { label: '중위험', style: 'text-[#e65100] bg-[#fff3e0]' },
+  LOW: { label: '저위험', style: 'text-[#008233] bg-[#f0fdf4]' },
+};
 
 const STATUS_LABELS: Record<ReviewStatus, string> = {
   REVIEWING: '심사중',
-  APPROVED: '승인',
-  REVISION_REQUIRED: '보완요청',
-};
-
-const STATUS_STYLES: Record<ReviewStatus, string> = {
-  REVIEWING: 'bg-blue-50 text-blue-700 border-blue-200',
-  APPROVED: 'bg-green-50 text-green-700 border-green-200',
-  REVISION_REQUIRED: 'bg-orange-50 text-orange-700 border-orange-200',
-};
-
-const RISK_STYLES: Record<RiskLevel, string> = {
-  LOW: 'text-green-600',
-  MEDIUM: 'text-yellow-600',
-  HIGH: 'text-red-600',
-};
-
-const RISK_LABELS: Record<RiskLevel, string> = {
-  LOW: '낮음',
-  MEDIUM: '보통',
-  HIGH: '높음',
+  APPROVED: '승인됨',
+  REVISION_REQUIRED: '보완됨',
 };
 
 type StatusFilter = ReviewStatus | 'ALL';
-type RiskFilter = RiskLevel | 'ALL';
 
 export default function ReviewsListPage() {
   const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
-  const [domainFilter, setDomainFilter] = useState('');
-  const [riskFilter, setRiskFilter] = useState<RiskFilter>('ALL');
+  const [searchParams] = useSearchParams();
+  const urlStatus = searchParams.get('status');
+  const urlRiskLevel = searchParams.get('riskLevel');
+
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => {
+    if (urlStatus && ['REVIEWING', 'APPROVED', 'REVISION_REQUIRED'].includes(urlStatus)) {
+      return urlStatus as ReviewStatus;
+    }
+    return 'ALL';
+  });
+  const [riskLevelFilter, setRiskLevelFilter] = useState<RiskLevel | undefined>(() => {
+    if (urlRiskLevel && ['LOW', 'MEDIUM', 'HIGH'].includes(urlRiskLevel)) {
+      return urlRiskLevel as RiskLevel;
+    }
+    return undefined;
+  });
+  const domainFilter = searchParams.get('domainCode') || '';
   const [page, setPage] = useState(0);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const { data, isLoading, isError } = useReviews({
     status: statusFilter === 'ALL' ? undefined : statusFilter,
+    riskLevel: riskLevelFilter,
     domainCode: domainFilter || undefined,
-    riskLevel: riskFilter === 'ALL' ? undefined : riskFilter,
     page,
     size: 10,
   });
 
-  const bulkReportMutation = useBulkReport();
-  const exportMutation = useExportReviews();
-
   const reviews = data?.content || [];
   const totalPages = data?.page?.totalPages || 0;
+  const dashboardData = data?.summary;
 
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) =>
@@ -68,27 +74,73 @@ export default function ReviewsListPage() {
     }
   };
 
-  const handleBulkReport = () => {
-    if (selectedIds.length === 0) return;
-    bulkReportMutation.mutate(selectedIds);
-  };
-
-  const handleExport = (format: 'EXCEL' | 'CSV') => {
-    const ids = selectedIds.length > 0 ? selectedIds : reviews.map((r) => r.reviewId);
-    exportMutation.mutate({ format, reviewIds: ids });
-  };
-
   const statusTabs: { key: StatusFilter; label: string }[] = [
     { key: 'ALL', label: '전체' },
     { key: 'REVIEWING', label: '심사중' },
-    { key: 'APPROVED', label: '승인' },
-    { key: 'REVISION_REQUIRED', label: '보완요청' },
+    { key: 'APPROVED', label: '승인됨' },
+    { key: 'REVISION_REQUIRED', label: '보완됨' },
   ];
+
+  const domainLabel = domainFilter ? (DOMAIN_LABELS[domainFilter as DomainCode] || domainFilter) : '';
 
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-[24px] p-[24px] lg:p-[40px] max-w-[1200px] mx-auto w-full">
-        <h1 className="font-heading-small text-[var(--color-text-primary)]">심사 관리</h1>
+        <h1 className="font-heading-small text-[var(--color-text-primary)]">
+          {domainLabel ? `${domainLabel} 심사 관리` : '심사 관리'}
+        </h1>
+
+        {/* 대시보드 통계 */}
+        {dashboardData && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-[16px]">
+            {/* 총 협력사 */}
+            <div className="bg-white rounded-[16px] p-[20px] shadow-sm">
+              <div className="w-[40px] h-[40px] rounded-full bg-[#dbeafe] flex items-center justify-center mb-[12px]">
+                <svg className="w-[20px] h-[20px] text-[#2563eb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <p className="font-body-small text-[#6b7280] mb-[4px]">총 협력사</p>
+              <p className="font-title-large text-[#111827]">{dashboardData.totalCompanies}</p>
+            </div>
+
+            {/* 심사중 */}
+            <div className="bg-white rounded-[16px] p-[20px] shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => { setStatusFilter('REVIEWING'); setPage(0); setSelectedIds([]); }}>
+              <div className="w-[40px] h-[40px] rounded-full bg-[#dbeafe] flex items-center justify-center mb-[12px]">
+                <svg className="w-[20px] h-[20px] text-[#2563eb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="font-body-small text-[#6b7280] mb-[4px]">심사중</p>
+              <p className="font-title-large text-[#2563eb]">{dashboardData.inProgressCount}</p>
+            </div>
+
+            {/* 승인됨 */}
+            <div className="bg-white rounded-[16px] p-[20px] shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => { setStatusFilter('APPROVED'); setPage(0); setSelectedIds([]); }}>
+              <div className="w-[40px] h-[40px] rounded-full bg-[#dcfce7] flex items-center justify-center mb-[12px]">
+                <svg className="w-[20px] h-[20px] text-[#16a34a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="font-body-small text-[#6b7280] mb-[4px]">승인됨</p>
+              <p className="font-title-large text-[#16a34a]">{dashboardData.completedCount}</p>
+            </div>
+
+            {/* 보완됨 */}
+            <div className="bg-white rounded-[16px] p-[20px] shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => { setStatusFilter('REVISION_REQUIRED'); setPage(0); setSelectedIds([]); }}>
+              <div className="w-[40px] h-[40px] rounded-full bg-[#fff3e0] flex items-center justify-center mb-[12px]">
+                <svg className="w-[20px] h-[20px] text-[#e65100]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <p className="font-body-small text-[#6b7280] mb-[4px]">보완됨</p>
+              <p className="font-title-large text-[#e65100]">{dashboardData.pendingCount}</p>
+            </div>
+          </div>
+        )}
 
         {/* 필터 */}
         <div className="flex flex-wrap items-center gap-[12px]">
@@ -108,57 +160,17 @@ export default function ReviewsListPage() {
             ))}
           </div>
 
+          {/* 위험등급 드롭다운 */}
           <select
-            value={domainFilter}
-            onChange={(e) => { setDomainFilter(e.target.value); setPage(0); }}
-            className="px-[12px] py-[8px] rounded-[8px] border border-[var(--color-border-default)] font-body-medium text-[var(--color-text-primary)] bg-white"
+            value={riskLevelFilter || ''}
+            onChange={(e) => { setRiskLevelFilter((e.target.value || undefined) as RiskLevel | undefined); setPage(0); setSelectedIds([]); }}
+            className="px-[12px] py-[8px] rounded-[8px] border border-[var(--color-border-default)] font-title-xsmall text-[var(--color-text-secondary)] bg-white"
           >
-            <option value="">전체 도메인</option>
-            <option value="ESG">{DOMAIN_LABELS.ESG}</option>
-            <option value="SAFETY">{DOMAIN_LABELS.SAFETY}</option>
-            <option value="COMPLIANCE">{DOMAIN_LABELS.COMPLIANCE}</option>
+            <option value="">위험등급: 전체</option>
+            <option value="HIGH">고위험</option>
+            <option value="MEDIUM">중위험</option>
+            <option value="LOW">저위험</option>
           </select>
-
-          <select
-            value={riskFilter}
-            onChange={(e) => { setRiskFilter(e.target.value as RiskFilter); setPage(0); }}
-            className="px-[12px] py-[8px] rounded-[8px] border border-[var(--color-border-default)] font-body-medium text-[var(--color-text-primary)] bg-white"
-          >
-            <option value="ALL">전체 위험등급</option>
-            <option value="LOW">낮음</option>
-            <option value="MEDIUM">보통</option>
-            <option value="HIGH">높음</option>
-          </select>
-        </div>
-
-        {/* 액션 바 */}
-        <div className="flex items-center justify-between">
-          <p className="font-body-medium text-[var(--color-text-tertiary)]">
-            {selectedIds.length > 0 ? `${selectedIds.length}건 선택됨` : ''}
-          </p>
-          <div className="flex gap-[8px]">
-            <button
-              onClick={handleBulkReport}
-              disabled={selectedIds.length === 0 || bulkReportMutation.isPending}
-              className="px-[16px] py-[8px] rounded-[8px] border border-[var(--color-border-default)] font-title-xsmall text-[var(--color-text-secondary)] hover:bg-gray-50 disabled:opacity-40 transition-colors"
-            >
-              {bulkReportMutation.isPending ? '생성 중...' : '일괄 리포트'}
-            </button>
-            <button
-              onClick={() => handleExport('EXCEL')}
-              disabled={exportMutation.isPending}
-              className="px-[16px] py-[8px] rounded-[8px] border border-[var(--color-border-default)] font-title-xsmall text-[var(--color-text-secondary)] hover:bg-gray-50 disabled:opacity-40 transition-colors"
-            >
-              Excel
-            </button>
-            <button
-              onClick={() => handleExport('CSV')}
-              disabled={exportMutation.isPending}
-              className="px-[16px] py-[8px] rounded-[8px] border border-[var(--color-border-default)] font-title-xsmall text-[var(--color-text-secondary)] hover:bg-gray-50 disabled:opacity-40 transition-colors"
-            >
-              CSV
-            </button>
-          </div>
         </div>
 
         {/* 테이블 */}
@@ -174,11 +186,9 @@ export default function ReviewsListPage() {
                     className="w-[16px] h-[16px] cursor-pointer"
                   />
                 </th>
-                <th className="px-[16px] py-[12px] text-left font-title-xsmall text-[var(--color-text-secondary)]">제목</th>
-                <th className="px-[16px] py-[12px] text-left font-title-xsmall text-[var(--color-text-secondary)]">도메인</th>
+                <th className="px-[16px] py-[12px] text-left font-title-xsmall text-[var(--color-text-secondary)]">기안명</th>
                 <th className="px-[16px] py-[12px] text-left font-title-xsmall text-[var(--color-text-secondary)]">회사명</th>
                 <th className="px-[16px] py-[12px] text-center font-title-xsmall text-[var(--color-text-secondary)]">위험등급</th>
-                <th className="px-[16px] py-[12px] text-center font-title-xsmall text-[var(--color-text-secondary)]">점수</th>
                 <th className="px-[16px] py-[12px] text-left font-title-xsmall text-[var(--color-text-secondary)]">제출일</th>
                 <th className="px-[16px] py-[12px] text-center font-title-xsmall text-[var(--color-text-secondary)]">상태</th>
               </tr>
@@ -186,7 +196,7 @@ export default function ReviewsListPage() {
             <tbody>
               {isLoading && (
                 <tr>
-                  <td colSpan={8} className="text-center py-[60px]">
+                  <td colSpan={6} className="text-center py-[60px]">
                     <div className="inline-block w-[32px] h-[32px] border-[3px] border-[var(--color-primary-main)] border-t-transparent rounded-full animate-spin" />
                   </td>
                 </tr>
@@ -194,7 +204,7 @@ export default function ReviewsListPage() {
 
               {isError && (
                 <tr>
-                  <td colSpan={8} className="text-center py-[60px]">
+                  <td colSpan={6} className="text-center py-[60px]">
                     <p className="font-body-medium text-[var(--color-state-error-text)]">심사 목록을 불러오는 데 실패했습니다.</p>
                   </td>
                 </tr>
@@ -202,59 +212,58 @@ export default function ReviewsListPage() {
 
               {!isLoading && !isError && reviews.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center py-[60px]">
+                  <td colSpan={6} className="text-center py-[60px]">
                     <p className="font-body-medium text-[var(--color-text-tertiary)]">심사 내역이 없습니다.</p>
                   </td>
                 </tr>
               )}
 
-              {reviews.map((item) => (
-                <tr
-                  key={item.reviewId}
-                  className="border-b border-[var(--color-border-default)] hover:bg-gray-50 cursor-pointer transition-colors"
-                >
-                  <td className="px-[16px] py-[14px]" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(item.reviewId)}
-                      onChange={() => toggleSelect(item.reviewId)}
-                      className="w-[16px] h-[16px] cursor-pointer"
-                    />
-                  </td>
-                  <td
-                    className="px-[16px] py-[14px] font-body-medium text-[var(--color-text-primary)]"
-                    onClick={() => navigate(`/reviews/${item.reviewId}`)}
+              {reviews.map((item) => {
+                const riskConfig = item.riskLevel ? RISK_LEVEL_CONFIG[item.riskLevel] : null;
+                const riskLabel = riskConfig?.label || item.riskLevelLabel;
+                const riskStyle = riskConfig?.style || (item.riskColorClass ? `text-[#6b7280] bg-gray-100` : '');
+                return (
+                  <tr
+                    key={item.reviewId}
+                    className="border-b border-[var(--color-border-default)] hover:bg-gray-50 cursor-pointer transition-colors"
                   >
-                    {item.reviewIdLabel || `R-${item.reviewId}`}
-                  </td>
-                  <td className="px-[16px] py-[14px] font-body-medium text-[var(--color-text-secondary)]" onClick={() => navigate(`/reviews/${item.reviewId}`)}>
-                    {item.domainName || DOMAIN_LABELS[item.domainCode as DomainCode] || item.domainCode}
-                  </td>
-                  <td className="px-[16px] py-[14px] font-body-medium text-[var(--color-text-secondary)]" onClick={() => navigate(`/reviews/${item.reviewId}`)}>
-                    {item.company?.companyName || '-'}
-                  </td>
-                  <td className="px-[16px] py-[14px] text-center" onClick={() => navigate(`/reviews/${item.reviewId}`)}>
-                    {item.riskLevel ? (
-                      <span className={`font-title-xsmall ${RISK_STYLES[item.riskLevel]}`}>
-                        {RISK_LABELS[item.riskLevel]}
+                    <td className="px-[16px] py-[14px]" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(item.reviewId)}
+                        onChange={() => toggleSelect(item.reviewId)}
+                        className="w-[16px] h-[16px] cursor-pointer"
+                      />
+                    </td>
+                    <td
+                      className="px-[16px] py-[14px] font-body-medium text-[var(--color-text-primary)]"
+                      onClick={() => navigate(`/dashboard/${item.domainCode.toLowerCase()}/review/${item.reviewId}`)}
+                    >
+                      {item.diagnostic?.title || item.reviewIdLabel || `R-${item.reviewId}`}
+                    </td>
+                    <td className="px-[16px] py-[14px] font-body-medium text-[var(--color-text-secondary)]" onClick={() => navigate(`/dashboard/${item.domainCode.toLowerCase()}/review/${item.reviewId}`)}>
+                      {item.company?.companyName || '-'}
+                    </td>
+                    <td className="px-[16px] py-[14px] text-center" onClick={() => navigate(`/dashboard/${item.domainCode.toLowerCase()}/review/${item.reviewId}`)}>
+                      {riskLabel ? (
+                        <span className={`inline-block px-[10px] py-[4px] rounded-full font-title-xsmall border ${riskStyle}`}>
+                          {riskLabel}
+                        </span>
+                      ) : (
+                        <span className="font-body-medium text-[var(--color-text-tertiary)]">미분석</span>
+                      )}
+                    </td>
+                    <td className="px-[16px] py-[14px] font-body-medium text-[var(--color-text-tertiary)]" onClick={() => navigate(`/dashboard/${item.domainCode.toLowerCase()}/review/${item.reviewId}`)}>
+                      {formatKoreanDate(item.submittedAt)}
+                    </td>
+                    <td className="px-[16px] py-[14px] text-center" onClick={() => navigate(`/dashboard/${item.domainCode.toLowerCase()}/review/${item.reviewId}`)}>
+                      <span className={`inline-block px-[10px] py-[4px] rounded-full font-title-xsmall border ${STATUS_STYLES[item.status]}`}>
+                        {STATUS_LABELS[item.status]}
                       </span>
-                    ) : (
-                      <span className="font-body-medium text-[var(--color-text-tertiary)]">-</span>
-                    )}
-                  </td>
-                  <td className="px-[16px] py-[14px] text-center font-body-medium text-[var(--color-text-primary)]" onClick={() => navigate(`/reviews/${item.reviewId}`)}>
-                    {item.score != null ? item.score : '-'}
-                  </td>
-                  <td className="px-[16px] py-[14px] font-body-medium text-[var(--color-text-tertiary)]" onClick={() => navigate(`/reviews/${item.reviewId}`)}>
-                    {new Date(item.submittedAt).toLocaleDateString('ko-KR')}
-                  </td>
-                  <td className="px-[16px] py-[14px] text-center" onClick={() => navigate(`/reviews/${item.reviewId}`)}>
-                    <span className={`inline-block px-[10px] py-[4px] rounded-full font-title-xsmall border ${STATUS_STYLES[item.status]}`}>
-                      {STATUS_LABELS[item.status]}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

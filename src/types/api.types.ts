@@ -25,6 +25,14 @@ export interface ErrorResponse {
   status: number;
   code: string;
   message: string;
+  data?: AccountLockData;
+}
+
+/** 계정 잠금 데이터 */
+export interface AccountLockData {
+  lockedUntil?: string;
+  remainingMinutes?: number;
+  remainingAttempts?: number;
 }
 
 /** 페이지 정보 */
@@ -74,6 +82,7 @@ export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 export interface UserSimpleDto {
   userId: number;
   name: string;
+  maskedName: string;
   email: string;
 }
 
@@ -105,6 +114,7 @@ export interface CompanyInfoDto {
 export interface ProcessedByDto {
   userId: number;
   name: string;
+  maskedName: string;
 }
 
 // ============================================
@@ -139,6 +149,7 @@ export interface RegisterResponse {
 export interface LoginRequest {
   email: string;
   password: string;
+  recaptchaToken: string;
 }
 
 export interface LoginResponse {
@@ -147,15 +158,33 @@ export interface LoginResponse {
   tokenType: string;
   expiresIn: number;
   user: UserInfoDto;
+  remainingAttempts?: number;
+  warningMessage?: string;
+  passwordExpired?: boolean;
+  passwordExpiresAt?: string;
+  passwordExpiresInDays?: number;
 }
 
 export interface UserInfoDto {
   userId: number;
   email: string;
   name: string;
+  maskedName: string;
   role?: RoleInfoDto;
   domainRoles?: UserDomainRole[];
   company?: CompanyInfoDto;
+}
+
+// --- 비밀번호 변경 ---
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  newPasswordConfirm: string;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
+  message: string;
 }
 
 // --- 토큰 갱신 ---
@@ -180,6 +209,7 @@ export interface MyInfoResponse {
   userId: number;
   email: string;
   name: string;
+  maskedName: string;
   role?: RoleInfoDto;
   company?: CompanyInfoDto;
   lastLoginAt?: string;
@@ -370,6 +400,10 @@ export const ERROR_CODES = {
 
   // 403 Forbidden
   ACCESS_DENIED: 'A004',
+  ACCOUNT_LOCKED_PERMANENT: 'A005',
+  ACCOUNT_LOCKED_TEMPORARY: 'A006',
+  PASSWORD_EXPIRED: 'A007',
+  PASSWORD_REUSE_DENIED: 'A008',
   PERMISSION_DENIED_RESOURCE: 'PERM_001',
   PERMISSION_DENIED_ACTION: 'PERM_002',
 
@@ -388,10 +422,18 @@ export const ERROR_CODES = {
   // 429 Too Many Requests
   VERIFICATION_RATE_LIMIT: 'U010',
 
+  // 404 Not Found - Risk
+  RISK_COMPANY_NOT_FOUND: 'RISK001',
+  RISK_RESULT_NOT_FOUND: 'RISK003',
+
+  // 403 Forbidden - Risk
+  RISK_PERMISSION_DENIED: 'RISK004',
+
   // 500 Internal Server Error
   INTERNAL_ERROR: 'S001',
   FILE_UPLOAD_ERROR: 'S002',
   AI_SERVICE_ERROR: 'S003',
+  RISK_API_FAILURE: 'RISK002',
 } as const;
 
 export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];
@@ -404,6 +446,21 @@ export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
   PENDING: '승인 대기중',
   APPROVED: '승인 완료',
   REJECTED: '승인 반려',
+};
+
+export const DIAGNOSTIC_STATUS_LABELS: Record<DiagnosticStatus, string> = {
+  WRITING: '작성중',
+  SUBMITTED: '제출됨',
+  RETURNED: '반려됨',
+  APPROVED: '승인됨',
+  REVIEWING: '심사중',
+  COMPLETED: '완료',
+};
+
+export const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {
+  REVIEWING: '심사중',
+  APPROVED: '승인',
+  REVISION_REQUIRED: '보완요청',
 };
 
 export const ROLE_LABELS: Record<RoleCode, string> = {

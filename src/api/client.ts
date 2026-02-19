@@ -3,6 +3,39 @@ import type { ErrorResponse } from '../types/api.types';
 import { useAuthStore } from '../store/authStore';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const AUTH_HEADER_EXCLUDE_PATHS = [
+  '/v1/auth/login',
+  '/v1/auth/register',
+  '/v1/auth/check-email',
+  '/v1/auth/send-verification',
+  '/v1/auth/verify-email',
+  '/v1/auth/refresh',
+];
+
+const normalizeRequestPath = (url?: string): string => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      return new URL(url).pathname;
+    } catch {
+      return '';
+    }
+  }
+  return url.startsWith('/') ? url : `/${url}`;
+};
+
+const shouldAttachAuthHeader = (url?: string): boolean => {
+  if (!url) return false;
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    // External absolute URLs (e.g. Azure Blob SAS) must not carry bearer token.
+    return false;
+  }
+
+  const path = normalizeRequestPath(url);
+  // axios instance uses BASE_URL=/api and relative url like /v1/auth/login.
+  const apiNormalizedPath = path.startsWith('/api/') ? path.substring(4) : path;
+  return !AUTH_HEADER_EXCLUDE_PATHS.includes(apiNormalizedPath);
+};
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -16,7 +49,7 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const { accessToken } = useAuthStore.getState();
-    if (accessToken) {
+    if (accessToken && shouldAttachAuthHeader(config.url)) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
@@ -63,7 +96,9 @@ apiClient.interceptors.response.use(
 
       if (!refreshToken) {
         logout();
-        window.location.href = '/login';
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
         return Promise.reject(error);
       }
 
@@ -77,16 +112,24 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         logout();
-        window.location.href = '/login';
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
     }
 
-    if (error.response?.status === 401) {
+    const loginErrorCodes = ['A003', 'A005', 'A006'];
+    if (
+      error.response?.status === 401 &&
+      !loginErrorCodes.includes(error.response.data?.code ?? '')
+    ) {
       useAuthStore.getState().logout();
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
 
     return Promise.reject(error);

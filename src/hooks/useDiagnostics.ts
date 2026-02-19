@@ -18,6 +18,7 @@ export const useDiagnosticsList = (params?: DiagnosticsListParams) => {
   return useQuery({
     queryKey: QUERY_KEYS.DIAGNOSTICS.LIST(params),
     queryFn: () => diagnosticsApi.getDiagnostics(params),
+    enabled: !!params,
   });
 };
 
@@ -70,5 +71,20 @@ export const useDiagnosticHistory = (id: number) => {
     queryKey: QUERY_KEYS.DIAGNOSTICS.HISTORY(id),
     queryFn: () => diagnosticsApi.getDiagnosticHistory(id),
     enabled: id > 0,
+  });
+};
+
+export const useDeleteDiagnostic = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: diagnosticsApi.deleteDiagnostic,
+    onSuccess: () => {
+      toast.success('기안이 삭제되었습니다.');
+      queryClient.invalidateQueries({ queryKey: ['diagnostics'] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      handleApiError(error);
+    },
   });
 };

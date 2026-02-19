@@ -7,10 +7,10 @@ import { QUERY_KEYS } from '../constants/queryKeys';
 import { handleApiError } from '../utils/errorHandler';
 import type { ErrorResponse } from '../types/api.types';
 
-export const useReviewsDashboard = () => {
+export const useReviewsDashboard = (domainCode?: string) => {
   return useQuery({
-    queryKey: QUERY_KEYS.REVIEWS.DASHBOARD,
-    queryFn: reviewsApi.getReviewsDashboard,
+    queryKey: [...QUERY_KEYS.REVIEWS.DASHBOARD, domainCode],
+    queryFn: () => reviewsApi.getReviewsDashboard(domainCode),
   });
 };
 
@@ -18,6 +18,7 @@ export const useReviews = (params?: ReviewListParams) => {
   return useQuery({
     queryKey: QUERY_KEYS.REVIEWS.LIST(params),
     queryFn: () => reviewsApi.getReviews(params),
+    enabled: !!params,
   });
 };
 
@@ -38,6 +39,7 @@ export const useSubmitReview = () => {
     onSuccess: () => {
       toast.success('심사 처리가 완료되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['reviews'] });
+      queryClient.invalidateQueries({ queryKey: ['diagnostics'] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       handleApiError(error);

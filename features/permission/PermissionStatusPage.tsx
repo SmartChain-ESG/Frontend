@@ -5,6 +5,7 @@ import GuestLayout from '../../shared/layout/GuestLayout';
 import { useMyRoleRequests } from '../../src/hooks/useRoles';
 import { useAuthStore } from '../../src/store/authStore';
 import type { RequestStatus } from '../../src/types/api.types';
+import { formatKoreanDateTime } from '../../src/utils/dateTime';
 
 const STATUS_CONFIG: Record<RequestStatus, {
   label: string;
@@ -41,24 +42,19 @@ const STATUS_CONFIG: Record<RequestStatus, {
 };
 
 function formatDate(dateString: string): string {
-  try {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  } catch {
-    return dateString;
-  }
+  return formatKoreanDateTime(dateString, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function StatusBadge({ status }: { status: RequestStatus }) {
   const config = STATUS_CONFIG[status];
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${config.bgColor} ${config.textColor}`}>
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-body-small ${config.bgColor} ${config.textColor}`}>
       {config.icon}
       {config.label}
     </span>
@@ -91,7 +87,7 @@ export default function PermissionStatusPage() {
             <AlertCircle className="w-12 h-12 text-[#c62828]" />
             <p className="font-body-medium text-[#868e96]">요청 상태를 불러오는데 실패했습니다.</p>
             <Button variant="secondary" onClick={() => refetch()}>
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <RefreshCw className="w-4 h-4" />
               다시 시도
             </Button>
           </div>
@@ -165,7 +161,7 @@ export default function PermissionStatusPage() {
                   </div>
                   <div>
                     <p className="font-detail-small text-[#868e96]">요청자</p>
-                    <p className="font-body-medium text-[#212529]">{user?.name || '사용자'}</p>
+                    <p className="font-body-medium text-[#212529]">{user?.maskedName || '사용자'}</p>
                   </div>
                 </div>
 
@@ -253,7 +249,7 @@ export default function PermissionStatusPage() {
               {requestStatus.processedBy && (
                 <div className="mt-[20px] pt-[20px] border-t border-[#dee2e6]">
                   <p className="font-detail-small text-[#868e96]">
-                    처리자: {requestStatus.processedBy.name}
+                    처리자: {requestStatus.processedBy.maskedName}
                   </p>
                 </div>
               )}
@@ -267,7 +263,7 @@ export default function PermissionStatusPage() {
                 className="flex-1"
                 onClick={() => navigate(-1)}
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeft className="w-4 h-4" />
                 뒤로가기
               </Button>
 

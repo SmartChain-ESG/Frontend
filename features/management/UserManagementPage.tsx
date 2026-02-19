@@ -90,14 +90,14 @@ export default function UserManagementPage() {
   const getStatusBadge = (status: string) => {
     if (status === 'ACTIVE') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-[#e8f5e9] text-[#2e7d32]">
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full font-detail-small bg-[#e8f5e9] text-[#2e7d32]">
           <span className="w-1.5 h-1.5 rounded-full bg-[#2e7d32]" />
           활성
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-[#f5f5f5] text-[#757575]">
+      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full font-detail-small bg-[#f5f5f5] text-[#757575]">
         <span className="w-1.5 h-1.5 rounded-full bg-[#757575]" />
         비활성
       </span>
@@ -225,7 +225,7 @@ export default function UserManagementPage() {
                     >
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-body-medium text-[#212529]">{user.name}</p>
+                          <p className="font-body-medium text-[#212529]">{user.maskedName}</p>
                           <p className="font-detail-small text-[#868e96]">{user.email}</p>
                         </div>
                       </td>
@@ -321,7 +321,7 @@ export default function UserManagementPage() {
       {/* Role Change Confirmation Modal */}
       {showRoleConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-[20px] p-[32px] w-[400px] flex flex-col gap-[24px] shadow-xl">
+          <div className="bg-white rounded-[20px] p-6 md:p-[32px] w-[calc(100vw-32px)] max-w-[400px] flex flex-col gap-[24px] shadow-xl">
             <div className="flex flex-col items-center gap-4">
               <div className="w-16 h-16 bg-[#e7f1ff] rounded-full flex items-center justify-center">
                 <Users className="w-8 h-8 text-[#003087]" />
@@ -356,7 +356,7 @@ export default function UserManagementPage() {
       {/* Status Toggle Confirmation Modal */}
       {showStatusConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-[20px] p-[32px] w-[400px] flex flex-col gap-[24px] shadow-xl">
+          <div className="bg-white rounded-[20px] p-6 md:p-[32px] w-[calc(100vw-32px)] max-w-[400px] flex flex-col gap-[24px] shadow-xl">
             <div className="flex flex-col items-center gap-4">
               {showStatusConfirm.currentStatus === 'ACTIVE' ? (
                 <div className="w-16 h-16 bg-[#fff3e0] rounded-full flex items-center justify-center">

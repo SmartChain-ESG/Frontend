@@ -46,7 +46,7 @@ const DOMAIN_BADGE_STYLES: Record<string, { bg: string; text: string }> = {
 function StatusBadge({ status }: { status: RequestStatus }) {
   const style = STATUS_BADGE_STYLES[status];
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${style.bg} ${style.text} ${style.border}`}>
+    <span className={`inline-flex items-center px-[12px] py-[6px] rounded-full font-label-medium font-medium border ${style.bg} ${style.text} ${style.border}`}>
       {STATUS_LABELS[status]}
     </span>
   );
@@ -55,7 +55,7 @@ function StatusBadge({ status }: { status: RequestStatus }) {
 function RoleBadge({ roleCode }: { roleCode: string }) {
   const style = ROLE_BADGE_STYLES[roleCode] || { text: 'text-[#868e96]', border: 'border-[#dee2e6]' };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${style.text} ${style.border}`}>
+    <span className={`inline-flex items-center px-[10px] py-[4px] rounded-[8px] font-label-medium font-medium border ${style.text} ${style.border}`}>
       {ROLE_LABELS[roleCode] || roleCode}
     </span>
   );
@@ -64,7 +64,7 @@ function RoleBadge({ roleCode }: { roleCode: string }) {
 function DomainBadge({ domainCode, domainName }: { domainCode: string; domainName?: string }) {
   const style = DOMAIN_BADGE_STYLES[domainCode] || { bg: 'bg-[#f5f5f5]', text: 'text-[#616161]' };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${style.bg} ${style.text}`}>
+    <span className={`inline-flex items-center px-[10px] py-[4px] rounded-[8px] font-label-medium font-medium ${style.bg} ${style.text}`}>
       {domainName || domainCode}
     </span>
   );
@@ -125,26 +125,26 @@ export default function PermissionManagementPage() {
   const filteredRequests = searchKeyword
     ? requests.filter(
         (req) =>
-          req.user.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+          req.user.maskedName.toLowerCase().includes(searchKeyword.toLowerCase()) ||
           req.company.companyName.toLowerCase().includes(searchKeyword.toLowerCase())
       )
     : requests;
 
   return (
     <DashboardLayout>
-      <div className="p-[32px] w-full bg-[#f8f9fa] min-h-full">
+      <div className="p-4 md:p-[32px] w-full bg-[#f8f9fa] min-h-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-[24px]">
           <h1 className="font-heading-medium text-[#212529]">권한 관리</h1>
           <Button variant="secondary" onClick={() => refetch()}>
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className="w-4 h-4" />
             새로고침
           </Button>
         </div>
 
         {/* Filters */}
         <div className="bg-white rounded-[20px] p-[24px] mb-[24px] shadow-sm">
-          <div className="flex items-end gap-[16px]">
+          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-[16px]">
             {/* 검색 */}
             <div className="flex-1">
               <p className="font-title-small text-[#212529] mb-[8px]">검색</p>
@@ -154,21 +154,21 @@ export default function PermissionManagementPage() {
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                   placeholder="이름 또는 회사명으로 검색"
-                  className="w-full h-[48px] pl-[16px] pr-[48px] rounded-[12px] border border-[#dee2e6] text-[14px] focus:outline-none focus:border-[#003087]"
+                  className="w-full h-[48px] pl-[16px] pr-[48px] rounded-[12px] border border-[#dee2e6] font-body-small focus:outline-none focus:border-[#003087]"
                 />
                 <Search className="absolute right-[16px] top-[12px] w-[24px] h-[24px] text-[#adb5bd]" />
               </div>
             </div>
 
             {/* 상태 필터 */}
-            <div className="w-[200px]">
+            <div className="w-full md:w-[200px]">
               <p className="font-title-small text-[#212529] mb-[8px]">상태</p>
               <div className="relative">
                 <button
                   onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
                   className="w-full h-[48px] px-[16px] rounded-[12px] border border-[#dee2e6] flex items-center justify-between bg-white"
                 >
-                  <span className={`text-[14px] ${filterStatus ? 'text-[#212529]' : 'text-[#adb5bd]'}`}>
+                  <span className={`font-body-small ${filterStatus ? 'text-[#212529]' : 'text-[#adb5bd]'}`}>
                     {filterStatus ? STATUS_LABELS[filterStatus] : '전체'}
                   </span>
                   <ChevronDown className="w-5 h-5 text-[#868e96]" />
@@ -183,7 +183,7 @@ export default function PermissionManagementPage() {
                           setIsStatusDropdownOpen(false);
                           setPage(0);
                         }}
-                        className={`w-full px-[16px] py-[12px] text-left text-[14px] hover:bg-[#f8f9fa] ${
+                        className={`w-full px-[16px] py-[12px] text-left font-body-small hover:bg-[#f8f9fa] ${
                           (option.value === 'ALL' && !filterStatus) || option.value === filterStatus
                             ? 'bg-[#eff4fc] text-[#003087]'
                             : 'text-[#212529]'
@@ -231,7 +231,7 @@ export default function PermissionManagementPage() {
               <AlertCircle className="w-12 h-12 text-[#c62828] mb-4" />
               <p className="font-body-medium text-[#868e96] mb-4">요청 목록을 불러오는데 실패했습니다.</p>
               <Button variant="secondary" onClick={() => refetch()}>
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-4 h-4" />
                 다시 시도
               </Button>
             </div>
@@ -276,7 +276,7 @@ export default function PermissionManagementPage() {
                         </td>
                         <td className="py-[14px] px-[16px] border-b border-[#f1f3f5]">
                           <div>
-                            <p className="font-body-small text-[#212529]">{req.user.name}</p>
+                            <p className="font-body-small text-[#212529]">{req.user.maskedName}</p>
                             <p className="font-detail-small text-[#adb5bd]">{req.user.email}</p>
                           </div>
                         </td>
@@ -302,13 +302,13 @@ export default function PermissionManagementPage() {
                         <td className="py-[14px] px-[16px] text-center border-b border-[#f1f3f5]">
                           <button
                             onClick={() => handleViewClick(req)}
-                            className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg font-title-small transition-colors ${
                               req.status === 'PENDING'
                                 ? 'bg-[#003087] text-white hover:bg-[#002266]'
                                 : 'bg-[#f1f3f5] text-[#495057] hover:bg-[#e9ecef]'
                             }`}
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-5 h-5" />
                             {req.status === 'PENDING' ? '처리' : '보기'}
                           </button>
                         </td>

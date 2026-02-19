@@ -1,4 +1,5 @@
 import type { AiHistoryEntry, Verdict, RiskLevel } from './types';
+import { formatKoreanDateTime } from '../../../src/utils/dateTime';
 
 interface AiHistoryTimelineProps {
   history: AiHistoryEntry[];
@@ -45,8 +46,7 @@ const riskConfig: Record<RiskLevel, { label: string; colorClass: string }> = {
 };
 
 function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleString('ko-KR', {
+  return formatKoreanDateTime(dateString, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

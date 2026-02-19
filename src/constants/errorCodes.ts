@@ -12,6 +12,10 @@ export const ERROR_HANDLERS: Record<string, ErrorConfig> = {
   A002: { action: 'silent' },
   A003: { action: 'toast', customMessage: '이메일 또는 비밀번호를 확인해주세요' },
   A004: { action: 'toast' },
+  A005: { action: 'toast', customMessage: '계정이 영구 잠금되었습니다. 관리자에게 문의해주세요.' },
+  A006: { action: 'silent' }, // LoginPage에서 직접 처리
+  A007: { action: 'silent' }, // 비밀번호 만료 — LoginPage에서 직접 처리
+  A008: { action: 'toast', customMessage: '이전에 사용한 비밀번호는 재사용할 수 없습니다.' },
 
   // Permission
   PERM_001: { action: 'redirect', redirectTo: '/dashboard', customMessage: '해당 리소스에 대한 접근 권한이 없습니다' },
@@ -36,8 +40,18 @@ export const ERROR_HANDLERS: Record<string, ErrorConfig> = {
   // Rate limit
   U010: { action: 'toast' },
 
+  // Validation
+  U001: { action: 'toast' },
+
+  // Resource
+  RES_004: { action: 'toast', customMessage: '요청한 파일을 찾을 수 없습니다.' },
+
   // Server
   S001: { action: 'toast', customMessage: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' },
+  S003: { action: 'toast', customMessage: '서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' },
+
+  // File
+  S002: { action: 'toast', customMessage: '파일 업로드에 실패했습니다. 파일 형식 또는 크기를 확인해주세요.' },
 
   // Diagnostic
   D001: { action: 'redirect', redirectTo: '/not-found', customMessage: '기안을 찾을 수 없습니다.' },
@@ -52,6 +66,9 @@ export const ERROR_HANDLERS: Record<string, ErrorConfig> = {
   AI004: { action: 'toast', customMessage: '요청 형식 오류가 발생했습니다. 입력 데이터를 확인해주세요.' },
   AI005: { action: 'toast', customMessage: '필수 항목이 누락되었습니다. 모든 필수 항목을 제출해주세요.' },
   AI006: { action: 'toast', customMessage: '분석 시간이 초과되었습니다. 다시 시도해주세요.' },
+  AI007: { action: 'toast', customMessage: 'AI 분석 요청에 실패했습니다. 파일을 확인 후 다시 시도해주세요.' },
+  AI009: { action: 'toast', customMessage: '파일 처리 중입니다. 잠시 후 다시 시도해주세요.' },
+  AI010: { action: 'toast', customMessage: '진단 기간을 먼저 설정해주세요.' },
 };
 
 /**
@@ -154,6 +171,15 @@ export const LOGIN_ERROR_MESSAGES: Record<string, string> = {
   // 토큰 관련
   A001: '인증 정보가 유효하지 않습니다. 다시 로그인해주세요.',
   A002: '로그인 세션이 만료되었습니다. 다시 로그인해주세요.',
+
+  // 계정 잠금
+  A005: '계정이 영구 잠금되었습니다. 관리자에게 문의해주세요.',
+  A006: '계정이 일시 잠금되었습니다.',
+  ACCOUNT_LOCKED: '계정이 잠금되었습니다.',
+
+  // 비밀번호 만료/재사용
+  A007: '비밀번호가 만료되었습니다. 새 비밀번호로 변경해주세요.',
+  A008: '이전에 사용한 비밀번호는 재사용할 수 없습니다.',
 
   // 서버 오류 (500)
   S001: '서버에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',

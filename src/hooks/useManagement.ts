@@ -5,6 +5,7 @@ import * as managementApi from '../api/management';
 import type { UserListParams, CompanyListParams, RegisterCompanyRequest, ActivityLogParams, ExportActivityLogsRequest } from '../api/management';
 import { QUERY_KEYS } from '../constants/queryKeys';
 import { handleApiError } from '../utils/errorHandler';
+import { formatNowKoreanYmd } from '../utils/dateTime';
 import type { ErrorResponse } from '../types/api.types';
 
 export const usePermissionsDashboard = () => {
@@ -43,7 +44,7 @@ export const useExportActivityLogs = () => {
       const link = document.createElement('a');
       link.href = url;
       const extension = variables.format === 'CSV' ? 'csv' : 'xlsx';
-      const timestamp = new Date().toISOString().slice(0, 10);
+      const timestamp = formatNowKoreanYmd('-');
       link.download = `activity-logs-${timestamp}.${extension}`;
       document.body.appendChild(link);
       link.click();

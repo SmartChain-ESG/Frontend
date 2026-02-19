@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
@@ -9,27 +10,23 @@ import LoginPage from './features/auth/LoginPage';
 import SignupStep1Page from './features/auth/SignupStep1Page';
 import SignupStep2Page from './features/auth/SignupStep2Page';
 import HomePage from './features/dashboard/HomePage';
-import SafetyPage from './features/dashboard/SafetyPage';
-import CompliancePage from './features/dashboard/CompliancePage';
-import ESGPage from './features/dashboard/ESGPage';
 import FileUploadPage from './features/documents/FileUploadPage';
 import DocumentReviewPage from './features/documents/DocumentReviewPage';
 import PermissionRequestPage from './features/permission/PermissionRequestPage';
 import PermissionStatusPage from './features/permission/PermissionStatusPage';
 import PermissionManagementPage from './features/permission/PermissionManagementPage';
 import NotificationsPage from './features/notifications/NotificationsPage';
-import ApprovalsListPage from './features/approvals/ApprovalsListPage';
 import ApprovalDetailPage from './features/approvals/ApprovalDetailPage';
 import DiagnosticsListPage from './features/diagnostics/DiagnosticsListPage';
 import DiagnosticDetailPage from './features/diagnostics/DiagnosticDetailPage';
 import DiagnosticCreatePage from './features/diagnostics/DiagnosticCreatePage';
 import DiagnosticFilesPage from './features/diagnostics/DiagnosticFilesPage';
-import DiagnosticAiAnalysisPage from './features/diagnostics/DiagnosticAiAnalysisPage';
 import ReviewsListPage from './features/reviews/ReviewsListPage';
-import ReviewDetailPage from './features/reviews/ReviewDetailPage';
+import AiAnalysisPage from './features/documents/AiAnalysisPage';
 import UserManagementPage from './features/management/UserManagementPage';
 import CompanyManagementPage from './features/management/CompanyManagementPage';
 import ActivityLogPage from './features/management/ActivityLogPage';
+import ChangePasswordPage from './features/auth/ChangePasswordPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,7 +82,7 @@ function DomainProtectedRoute({ children, domainCode }: DomainProtectedRouteProp
   }
 
   if (!hasDomainAccess(domainCode)) {
-    return <Navigate to="/permission/request" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -93,9 +90,28 @@ function DomainProtectedRoute({ children, domainCode }: DomainProtectedRouteProp
 
 function AppRoutes() {
   const { user } = useAuthStore();
+  const [isHydrated, setIsHydrated] = useState(useAuthStore.persist.hasHydrated());
+
+  // Wait for persist hydration to complete
+  useEffect(() => {
+    const unsubscribe = useAuthStore.persist.onFinishHydration(() => {
+      setIsHydrated(true);
+    });
+
+    return unsubscribe;
+  }, []);
 
   // Fetch user info on app load if authenticated
   useMe();
+
+  // Show loading until hydration is complete
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
+        <div className="w-[32px] h-[32px] border-[3px] border-[#2563eb] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const getUserRoleForLegacy = (): 'receiver' | 'drafter' | 'approver' => {
     if (!user?.role) return 'drafter';
@@ -113,6 +129,16 @@ function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup/step1" element={<SignupStep1Page />} />
       <Route path="/signup/step2" element={<SignupStep2Page />} />
+
+      {/* Change Password */}
+      <Route
+        path="/change-password"
+        element={
+          <ProtectedRoute>
+            <ChangePasswordPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Permission Routes */}
       <Route
@@ -199,24 +225,8 @@ function AppRoutes() {
           </MemberRoute>
         }
       />
-      <Route
-        path="/diagnostics/:id/ai-analysis"
-        element={
-          <MemberRoute>
-            <DiagnosticAiAnalysisPage />
-          </MemberRoute>
-        }
-      />
 
-      {/* Approvals */}
-      <Route
-        path="/approvals"
-        element={
-          <MemberRoute>
-            <ApprovalsListPage />
-          </MemberRoute>
-        }
-      />
+      {/* Approvals - 결재 상세 페이지만 유지 (전체 결재 목록 페이지는 제거됨, #276) */}
       <Route
         path="/approvals/:id"
         element={
@@ -232,14 +242,6 @@ function AppRoutes() {
         element={
           <MemberRoute>
             <ReviewsListPage />
-          </MemberRoute>
-        }
-      />
-      <Route
-        path="/reviews/:id"
-        element={
-          <MemberRoute>
-            <ReviewDetailPage />
           </MemberRoute>
         }
       />
@@ -263,31 +265,6 @@ function AppRoutes() {
           </MemberRoute>
         }
       />
-      <Route
-        path="/dashboard/safety"
-        element={
-          <DomainProtectedRoute domainCode="SAFETY">
-            <SafetyPage userRole={legacyRole} />
-          </DomainProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/compliance"
-        element={
-          <DomainProtectedRoute domainCode="COMPLIANCE">
-            <CompliancePage userRole={legacyRole} />
-          </DomainProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/esg"
-        element={
-          <DomainProtectedRoute domainCode="ESG">
-            <ESGPage userRole={legacyRole} />
-          </DomainProtectedRoute>
-        }
-      />
-
       {/* Document Routes - Safety */}
       <Route
         path="/dashboard/safety/upload"
@@ -323,6 +300,14 @@ function AppRoutes() {
           </DomainProtectedRoute>
         }
       />
+      <Route
+        path="/dashboard/compliance/review/:id/ai-analysis"
+        element={
+          <DomainProtectedRoute domainCode="COMPLIANCE">
+            <AiAnalysisPage />
+          </DomainProtectedRoute>
+        }
+      />
 
       {/* Document Routes - ESG */}
       <Route
@@ -355,7 +340,7 @@ export default function App() {
       <BrowserRouter>
         <AppRoutes />
       </BrowserRouter>
-      <Toaster position="top-right" richColors />
+      <Toaster position="top-right" richColors offset={72} duration={3000} />
     </QueryClientProvider>
   );
 }
