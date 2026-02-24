@@ -4,6 +4,7 @@ import { useApprovals } from '../../src/hooks/useApprovals';
 import type { ApprovalStatus } from '../../src/types/api.types';
 import { DOMAIN_LABELS } from '../../src/types/api.types';
 import type { DomainCode } from '../../src/types/api.types';
+import { formatKoreanDate } from '../../src/utils/dateTime';
 import DashboardLayout from '../../shared/layout/DashboardLayout';
 
 const STATUS_LABELS: Record<ApprovalStatus, string> = {
@@ -149,7 +150,7 @@ export default function ApprovalsListPage() {
                     {item.drafterName}
                   </td>
                   <td className="px-[16px] py-[14px] font-body-medium text-[var(--color-text-tertiary)]">
-                    {new Date(item.submittedAt).toLocaleDateString('ko-KR')}
+                    {formatKoreanDate(item.submittedAt)}
                   </td>
                   <td className="px-[16px] py-[14px] text-center">
                     <span className={`inline-block px-[10px] py-[4px] rounded-full font-title-xsmall border ${STATUS_STYLES[item.status]}`}>

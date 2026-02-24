@@ -4,6 +4,7 @@ import { useReviewDetail, useSubmitReview, useGenerateReport } from '../../src/h
 import type { ReviewStatus, RiskLevel, DomainCode } from '../../src/types/api.types';
 import { DOMAIN_LABELS } from '../../src/types/api.types';
 import { handleApiError } from '../../src/utils/errorHandler';
+import { formatKoreanDate } from '../../src/utils/dateTime';
 import type { AxiosError } from 'axios';
 import type { ErrorResponse } from '../../src/types/api.types';
 import DashboardLayout from '../../shared/layout/DashboardLayout';
@@ -137,7 +138,7 @@ export default function ReviewDetailPage() {
             <InfoRow label="도메인" value={review.domainName || DOMAIN_LABELS[review.domainCode as DomainCode] || review.domainCode} />
             <InfoRow label="회사명" value={review.company?.companyName || '-'} />
             <InfoRow label="기안코드" value={review.diagnostic?.diagnosticCode || '-'} />
-            <InfoRow label="제출일" value={new Date(review.submittedAt).toLocaleDateString('ko-KR')} />
+            <InfoRow label="제출일" value={formatKoreanDate(review.submittedAt)} />
             {risk && <InfoRow label="위험 등급" value={risk.label} valueClassName={risk.style} />}
             {review.score != null && <InfoRow label="점수" value={String(review.score)} />}
           </div>

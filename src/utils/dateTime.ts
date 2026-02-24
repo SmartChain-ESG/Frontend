@@ -1,4 +1,4 @@
-export const KST_TIME_ZONE = 'Asia/Seoul';
+﻿export const KST_TIME_ZONE = 'Asia/Seoul';
 const KST_OFFSET = '+09:00';
 const HAS_TIMEZONE_REGEX = /([zZ]|[+\-]\d{2}:?\d{2})$/;
 const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
@@ -16,6 +16,7 @@ export function parseServerDate(dateStr?: string | null): Date {
   if (!HAS_TIMEZONE_REGEX.test(input)) {
     const match = input.match(DATETIME_WITHOUT_TIMEZONE_REGEX);
     if (match) {
+      // Backend LocalDateTime is timezone-naive; treat it as KST wall-clock time.
       return new Date(`${match[1]}T${match[2]}${KST_OFFSET}`);
     }
   }

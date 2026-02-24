@@ -13,6 +13,7 @@ import type { DomainCode, RiskLevel, ErrorResponse } from '../../src/types/api.t
 import { DOMAIN_LABELS } from '../../src/types/api.types';
 import type { SlotStatus, AiAnalysisResultResponse } from '../../src/api/aiRun';
 import { AiJobErrorHandler, AiServiceFallback } from '../../shared/components/ai';
+import { formatKoreanDateTime } from '../../src/utils/dateTime';
 import DashboardLayout from '../../shared/layout/DashboardLayout';
 
 type Verdict = 'PASS' | 'WARN' | 'NEED_CLARIFY' | 'NEED_FIX';
@@ -493,7 +494,7 @@ function AiResultCard({ result }: { result: AiAnalysisResultResponse }) {
         <div>
           <p className="font-title-xsmall text-[var(--color-text-tertiary)] mb-[4px]">분석 일시</p>
           <p className="font-body-medium text-[var(--color-text-primary)]">
-            {new Date(result.analyzedAt).toLocaleString('ko-KR')}
+            {formatKoreanDateTime(result.analyzedAt)}
           </p>
         </div>
       </div>
@@ -516,7 +517,7 @@ function HistoryItem({ item, isLatest }: { item: AiAnalysisResultResponse; isLat
       <div className="space-y-[8px]">
         {/* 날짜 */}
         <p className="font-body-small text-[var(--color-text-tertiary)]">
-          {new Date(item.analyzedAt).toLocaleString('ko-KR')}
+          {formatKoreanDateTime(item.analyzedAt)}
         </p>
 
         {/* 판정 + 위험도 */}

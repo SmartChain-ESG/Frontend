@@ -39,11 +39,14 @@ export const useAiResult = (diagnosticId: number, polling = false) => {
   return useQuery({
     queryKey: QUERY_KEYS.AI_RUN.RESULT(diagnosticId),
     queryFn: async () => {
+      const history = await aiRunApi.getAiHistory(diagnosticId);
+      if (!history || history.length === 0) {
+        return null;
+      }
       const detail = await aiRunApi.getAiResultDetail(diagnosticId);
       if (detail) {
         return detail as unknown as aiRunApi.AiAnalysisResultResponse;
       }
-      const history = await aiRunApi.getAiHistory(diagnosticId);
       return pickLatestById(history);
     },
     enabled: diagnosticId > 0,

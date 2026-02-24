@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import DashboardLayout from '../../shared/layout/DashboardLayout';
@@ -274,14 +274,14 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
               </div>
               <div className="flex items-center gap-[16px]">
                 <div className="flex items-center gap-[8px]">
-                  <span className="font-body-small text-[#868e96]">협력사:</span>
+                  <span className="font-body-small text-[#868e96]">기업명</span>
                   <span className="font-title-small text-[#212529]">
                     {review.company?.companyName || '-'}
                   </span>
                 </div>
                 <div className="w-[1px] h-[16px] bg-[#dee2e6]"></div>
                 <div className="flex items-center gap-[8px]">
-                  <span className="font-body-small text-[#868e96]">제출일:</span>
+                  <span className="font-body-small text-[#868e96]">제출일</span>
                   <span className="font-title-small text-[#212529]">
                     {formatDate(review.submittedAt)}
                   </span>
@@ -321,7 +321,7 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
                     <AlertCircle className="w-[24px] h-[24px] text-white" />
                   </div>
                   <p className="font-body-small text-[#6b7280] mb-[4px]">위험등급</p>
-                  <p className="font-heading-medium text-[#6b7280]">미분석</p>
+                  <p className="font-heading-medium text-[#6b7280]">미분류</p>
                 </div>
               </div>
             )}
@@ -352,7 +352,7 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
                     <span className="font-title-large text-white">-</span>
                   </div>
                   <p className="font-body-small text-[#6b7280] mb-[4px]">AI 판정</p>
-                  <p className="font-heading-medium text-[#6b7280]">미분석</p>
+                  <p className="font-heading-medium text-[#6b7280]">미분류</p>
                 </div>
               </div>
             )}
@@ -395,7 +395,7 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
               <h2 className="font-title-medium text-[#212529] mb-[16px]">AI 분석 결과 상세</h2>
 
               <div className="mb-[16px] p-[14px] rounded-[10px] border border-[#e9ecef] bg-[#f8f9fa]">
-                <p className="font-body-small text-[#868e96] mb-[6px]">AI 종합 판독 결과</p>
+                <p className="font-body-small text-[#868e96] mb-[6px]">AI 종합 요약 결과</p>
                 <p className="font-title-small text-[#212529] whitespace-pre-line">
                   {finalRecognitionResult || '-'}
                 </p>
@@ -413,7 +413,7 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
 
               {aiResult.details?.slot_results && aiResult.details.slot_results.length > 0 && (
                 <div>
-                  <p className="font-body-small text-[#868e96] mb-[12px]">슬롯별 분석 결과</p>
+                  <p className="font-body-small text-[#868e96] mb-[12px]">슬롯 분석 결과</p>
                   <div className="space-y-[12px]">
                     {aiResult.details.slot_results.map((slotResult: SlotResultDetail, index: number) => {
                       const clarification = aiResult.details?.clarifications?.find(
@@ -434,7 +434,7 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
 
               {aiResult.details?.crossValidations && aiResult.details.crossValidations.length > 0 && (
                 <div>
-                  <p className="font-body-small text-[#868e96] mb-[12px]">교차검증 결과</p>
+                  <p className="font-body-small text-[#868e96] mb-[12px]">교차 검증 결과</p>
                   <div className="space-y-[12px]">
                     {aiResult.details.crossValidations.map((cv: CrossValidationResult, index: number) => (
                       <CrossValidationCard key={index} result={cv} />
@@ -480,7 +480,13 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
                       <p className="font-body-small text-[#868e96]">
                         {maskName(item.performedBy.name)}
                         {item.performedBy.role && (
-                          <span className="ml-[6px] text-[#adb5bd]">({{ DRAFTER: '기안자', APPROVER: '결재자', REVIEWER: '수신자' }[item.performedBy.role] || item.performedBy.role})</span>
+                          <span className="ml-[6px] text-[#adb5bd]">
+                            ({{
+                              DRAFTER: '기안자',
+                              APPROVER: '결재자',
+                              REVIEWER: '수신자',
+                            }[item.performedBy.role] || item.performedBy.role})
+                          </span>
                         )}
                       </p>
                       {item.comment && (
@@ -509,7 +515,7 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
                     className="flex items-center gap-[8px] px-[16px] py-[10px] bg-[#f8f9fa] rounded-[8px] font-body-medium text-[#212529] hover:bg-[#e9ecef] transition-colors"
                   >
                     <FileText className="w-[18px] h-[18px] text-[#868e96]" />
-                    진단 PDF
+                    吏꾨떒 PDF
                     <Download className="w-[16px] h-[16px] text-[#868e96]" />
                   </a>
                 )}
@@ -562,14 +568,14 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
                   className="px-[32px] py-[14px] bg-[#6c757d] text-white rounded-[8px] font-title-small hover:bg-[#5a6268] transition-colors flex items-center gap-[8px]"
                 >
                   <ArrowLeft className="w-[20px] h-[20px]" />
-                  목록으로 (Back to List)
+                  목록으로
                 </button>
                 <button
                   onClick={handleSubmitToApprover}
                   disabled={isMutating || isCompleted}
                   className="px-[32px] py-[14px] bg-[#003087] text-white rounded-[8px] font-title-small hover:bg-[#002554] transition-colors disabled:opacity-50"
                 >
-                  결재자에게 제출 (Submit to Approver)
+                  결재자에게 제출
                 </button>
               </>
             )}
@@ -581,21 +587,21 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
                   className="px-[32px] py-[14px] bg-[#6c757d] text-white rounded-[8px] font-title-small hover:bg-[#5a6268] transition-colors flex items-center gap-[8px]"
                 >
                   <ArrowLeft className="w-[20px] h-[20px]" />
-                  목록으로 (Back to List)
+                  목록으로
                 </button>
                 <button
                   onClick={handleReject}
                   disabled={isCompleted}
                   className="px-[32px] py-[14px] bg-[#dc2626] text-white rounded-[8px] font-title-small hover:bg-[#b91c1c] transition-colors disabled:opacity-50"
                 >
-                  반려 및 보완 요청 (Reject & Request Fix)
+                  반려 및 보완 요청
                 </button>
                 <button
                   onClick={handleApprove}
                   disabled={isMutating || isCompleted}
                   className="px-[32px] py-[14px] bg-[#00ad1d] text-white rounded-[8px] font-title-small hover:bg-[#008a18] transition-colors disabled:opacity-50"
                 >
-                  원청 제출 (Submit to Client)
+                  요청 제출
                 </button>
               </>
             )}
@@ -607,7 +613,7 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
                   className="px-[32px] py-[14px] bg-[#6c757d] text-white rounded-[8px] font-title-small hover:bg-[#5a6268] transition-colors flex items-center gap-[8px]"
                 >
                   <ArrowLeft className="w-[20px] h-[20px]" />
-                  목록으로 (Back to List)
+                  목록으로
                 </button>
                 {review.domainCode === 'COMPLIANCE' && (
                   <button
@@ -627,14 +633,14 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
                   disabled={isCompleted}
                   className="px-[32px] py-[14px] bg-[#e65100] text-white rounded-[8px] font-title-small hover:bg-[#d84a00] transition-colors disabled:opacity-50"
                 >
-                  재제출 요청 (Request Resubmission)
+                  재제출 요청
                 </button>
                 <button
                   onClick={handleApprove}
                   disabled={isMutating || isCompleted}
                   className="px-[32px] py-[14px] bg-[#00ad1d] text-white rounded-[8px] font-title-small hover:bg-[#008a18] transition-colors disabled:opacity-50"
                 >
-                  완료 (Complete)
+                  완료
                 </button>
               </>
             )}
@@ -648,7 +654,7 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
           <form onSubmit={(e) => { e.preventDefault(); handleApproveWithComments(); }} className="bg-white rounded-[20px] p-[32px] w-[700px] max-w-[90%]">
             <div className="flex items-center justify-between mb-[24px]">
               <h3 className="font-heading-small text-[#212529]">
-                ESG 심사 승인
+                ESG 심사 확인
               </h3>
               <button
                 type="button"
@@ -710,7 +716,7 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
                 disabled={isMutating}
                 className="px-[24px] py-[12px] bg-[#00ad1d] text-white rounded-[8px] font-title-small hover:bg-[#008a18] transition-colors disabled:opacity-50"
               >
-                승인
+                확인
               </button>
             </div>
           </form>
@@ -740,7 +746,7 @@ export default function DocumentReviewPage({ userRole }: DocumentReviewPageProps
                 disabled={isMutating}
                 className="px-[24px] py-[12px] bg-[#00ad1d] text-white rounded-[8px] font-title-small hover:bg-[#008a18] transition-colors disabled:opacity-50"
               >
-                승인
+                확인
               </button>
             </div>
           </form>
@@ -936,11 +942,14 @@ function FileViewerModal({ fileId, fileName, personCount, onClose }: { fileId: n
 }
 
 function CrossValidationCard({ result }: { result: CrossValidationResult }) {
-  const verdict = result.verdict as Verdict;
+  const verdict = String(result.verdict ?? '').trim().toUpperCase() as Verdict;
+  const isPass = verdict === 'PASS';
+  const guidanceTitle = isPass ? '\u0041\u0049 \uBD84\uC11D \uACB0\uACFC' : '\uBCF4\uC644 \uC694\uCCAD \uC0AC\uD56D';
+  const guidanceToneClass = isPass ? 'text-[var(--color-state-success-text)]' : 'text-[#e67700]';
   const titleCandidates = result.displayNames && result.displayNames.length > 0
     ? result.displayNames
     : result.slots;
-  const title = titleCandidates.map((name) => getSlotDisplayName(name)).join(' × ');
+  const title = titleCandidates.map((name) => getSlotDisplayName(name)).join(' vs ');
 
   return (
     <div className="rounded-[12px] border overflow-hidden" style={VERDICT_CARD_BG[verdict]}>
@@ -976,7 +985,10 @@ function CrossValidationCard({ result }: { result: CrossValidationResult }) {
 }
 
 function SlotResultCard({ result, clarificationMessage, onFileClick }: { result: SlotResultDetail; clarificationMessage?: string; onFileClick: (fileId: number, fileName: string, personCount?: string) => void }) {
-  const verdict = result.verdict as Verdict;
+  const verdict = String(result.verdict ?? '').trim().toUpperCase() as Verdict;
+  const isPass = verdict === 'PASS';
+  const guidanceTitle = isPass ? 'AI 분석 결과' : '보완 요청 사항';
+  const guidanceToneClass = isPass ? 'text-[var(--color-state-success-text)]' : 'text-[#e67700]';
   const displayName = getSlotDisplayName(result.slot_name, result.display_name);
   const strippedMessage = clarificationMessage?.replace(/^안녕하세요[^\n]*\n\n/, '').trim();
   const [clarifyOpen, setClarifyOpen] = useState(false);
@@ -1028,7 +1040,7 @@ function SlotResultCard({ result, clarificationMessage, onFileClick }: { result:
           <button
             type="button"
             onClick={() => setClarifyOpen(prev => !prev)}
-            className="flex items-center gap-[6px] w-full px-[20px] py-[10px] font-label-small text-[#e67700] hover:bg-black/[0.03] transition-colors"
+            className={`flex items-center gap-[6px] w-full px-[20px] py-[10px] font-label-small hover:bg-black/[0.03] transition-colors ${guidanceToneClass}`}
           >
             <svg
               className={`w-[14px] h-[14px] flex-shrink-0 transition-transform ${clarifyOpen ? 'rotate-180' : ''}`}
@@ -1036,11 +1048,11 @@ function SlotResultCard({ result, clarificationMessage, onFileClick }: { result:
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
-            보완 요청 사항
+            {guidanceTitle}
           </button>
           {clarifyOpen && (
             <div className="px-[20px] pb-[16px]">
-              <p className="font-body-small text-[#e67700] leading-[1.6] whitespace-pre-line">
+              <p className={`font-body-small leading-[1.6] whitespace-pre-line ${guidanceToneClass}`}>
                 {strippedMessage}
               </p>
             </div>
@@ -1050,3 +1062,5 @@ function SlotResultCard({ result, clarificationMessage, onFileClick }: { result:
     </div>
   );
 }
+
+

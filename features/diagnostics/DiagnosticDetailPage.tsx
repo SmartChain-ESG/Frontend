@@ -486,7 +486,7 @@ function InfoRow({ label, value, valueClassName }: { label: string; value: strin
 }
 
 function AiResultSection({ result }: { result: AiAnalysisResultResponse }) {
-  const verdict = result.verdict as Verdict;
+  const verdict = String(result.verdict ?? '').trim().toUpperCase() as Verdict;
   const riskLevel = result.riskLevel as RiskLevel;
   const details = result.details;
 
@@ -557,7 +557,7 @@ function AiResultSection({ result }: { result: AiAnalysisResultResponse }) {
 }
 
 function CrossValidationCard({ result }: { result: CrossValidationResult }) {
-  const verdict = result.verdict as Verdict;
+  const verdict = String(result.verdict ?? '').trim().toUpperCase() as Verdict;
   const titleCandidates = result.displayNames && result.displayNames.length > 0
     ? result.displayNames
     : result.slots;
@@ -599,7 +599,10 @@ function CrossValidationCard({ result }: { result: CrossValidationResult }) {
 }
 
 function SlotResultCard({ result, clarificationMessage }: { result: SlotResultDetail; clarificationMessage?: string }) {
-  const verdict = result.verdict as Verdict;
+  const verdict = String(result.verdict ?? '').trim().toUpperCase() as Verdict;
+  const isPass = verdict === 'PASS';
+  const guidanceTitle = isPass ? 'AI 분석 결과' : '보완 요청 사항';
+  const guidanceToneClass = isPass ? 'text-[var(--color-state-success-text)]' : 'text-[var(--color-state-warning-text)]';
   const displayName = getSlotDisplayName(result.slot_name, result.display_name);
   const strippedMessage = clarificationMessage
     ?.replace(/^안녕하세요[^\n]*\n\n/, '')
@@ -644,7 +647,7 @@ function SlotResultCard({ result, clarificationMessage }: { result: SlotResultDe
           <button
             type="button"
             onClick={() => setClarifyOpen(prev => !prev)}
-            className="flex items-center gap-[6px] w-full px-[20px] py-[10px] font-label-small text-[var(--color-state-warning-text)] hover:bg-black/[0.03] transition-colors"
+            className={`flex items-center gap-[6px] w-full px-[20px] py-[10px] font-label-small hover:bg-black/[0.03] transition-colors ${guidanceToneClass}`}
           >
             <svg
               className={`w-[14px] h-[14px] flex-shrink-0 transition-transform ${clarifyOpen ? 'rotate-180' : ''}`}
@@ -652,11 +655,11 @@ function SlotResultCard({ result, clarificationMessage }: { result: SlotResultDe
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
-            보완 요청 사항
+            {guidanceTitle}
           </button>
           {clarifyOpen && (
             <div className="px-[20px] pb-[16px]">
-              <p className="font-body-small text-[var(--color-state-warning-text)] leading-[1.6] whitespace-pre-line">
+              <p className={`font-body-small leading-[1.6] whitespace-pre-line ${guidanceToneClass}`}>
                 {strippedMessage}
               </p>
             </div>

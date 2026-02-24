@@ -4,6 +4,7 @@ import { useDiagnosticsList } from '../../src/hooks/useDiagnostics';
 import { useApprovals } from '../../src/hooks/useApprovals';
 import { useReviews } from '../../src/hooks/useReviews';
 import type { DiagnosticStatus, ApprovalStatus, ReviewStatus } from '../../src/types/api.types';
+import { formatKoreanDate } from '../../src/utils/dateTime';
 
 interface ESGPageProps {
   userRole: 'receiver' | 'drafter' | 'approver';
@@ -53,8 +54,7 @@ const reviewStatusColors: Record<ReviewStatus, string> = {
 
 function formatDate(dateString?: string): string {
   if (!dateString) return '-';
-  const date = new Date(dateString);
-  return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+  return formatKoreanDate(dateString, { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\./g, '/').replace(/\s/g, '').replace(/\/$/, '');
 }
 
 export default function ESGPage({ userRole }: ESGPageProps) {
